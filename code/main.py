@@ -162,7 +162,7 @@ def local_search(cutoff, city_coords, seed):
     tour_ordered_list: list
         list of the order to visit the nodes for the found solution to TSP
     """
-
+    start = time.time()
     kT = 500000
     coolingFraction = 0.98 
     steps_to_lower = 10000
@@ -173,7 +173,6 @@ def local_search(cutoff, city_coords, seed):
     best_S = old_S
     best_cost = cost(distances, best_S)
 
-    start = time.time()
     while(float((time.time()-start)) < cutoff):
         index1, index2 = random.sample(range(len(old_S)), 2)
         new_S = old_S.copy()
