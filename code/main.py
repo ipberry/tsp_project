@@ -4,13 +4,13 @@ TSP Project: Felicity Nielson, Isabel Berry, Austin Chemelli, Prasad Shetye
 
 Solves the Traveling Salesman Problem using three different algorithm options: Exact (Brute-Force), Approximate (Deterministic 2-Approximation Algorithm), or Local Search (a stochastic algorithm)
 """
-
+import math
+import time
 import argparse
 import pandas as pd
-import math
 import random
-import numpy
-import time
+import numpy as np
+import itertools
 
 def get_arguments():
     """
@@ -97,11 +97,52 @@ def write_output(instance, method, cutoff, quality, tour_ordered_list, seed = No
             else:
                 output.write(f', {city}')
 
+
 def brute_force(cutoff, city_coords):
-    return quality, tour_ordered_list 
+    """
+    Solve the TSP using brute force with a time cutoff.
+
+    Parameters
+    ----------
+    cutoff: int
+        Time cutoff in seconds.
+    city_coords: list
+        List of city coordinates.
+
+    Returns
+    -------
+    tuple
+        (best_distance, best_tour) where best_distance is the shortest distance found,
+        and best_tour is the corresponding tour as an ordered list of city indices.
+    """
+    base = time.time()
+    ret = [math.inf, None]
+
+    def helper(current, remaining):
+        if time.time() < cutoff + base:
+            if not remaining:
+                distance = 0
+                for i in range(len(current)):
+                    curr1, curr2 = current[i], current[(i+1) % len(current)]
+                    distance += math.sqrt((float(curr1[1]) - float(curr2[1])) **2 + (float(curr1[2]) - float(curr2[2]))**2)
+                if distance < ret[0]:
+                    ret[0] = distance
+                    ret[1] = [city[0] for city in current]
+                return
+            else:
+                for ind, city in enumerate(remaining):
+                    current.append(city)
+                    helper(current, remaining[:ind] + remaining[ind+1:])
+                    current.pop()
+        else:
+            return
+
+    helper([], city_coords)
+
+    return tuple(ret)
 
 def approximate_mst(cutoff, city_coords):
-    return quality, tour_ordered_list 
+    return 
 
 def local_search(cutoff, city_coords, seed):
     """
