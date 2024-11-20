@@ -86,7 +86,7 @@ def write_output(instance, method, cutoff, quality, tour_ordered_list, seed = No
     """
     file_name = f'{instance}_{method}_{cutoff}'
     if seed is not None:
-        file_name = file_name + '_seed'
+        file_name = file_name + f'_{seed}'
     file_name = file_name + '.sol'
 
     with open(file_name, 'w') as output:
@@ -163,10 +163,11 @@ def local_search(cutoff, city_coords, seed):
         list of the order to visit the nodes for the found solution to TSP
     """
 
-    kT = 0.0005
-    coolingFraction = 0.90 
-    steps_to_lower = 10
+    kT = 500000
+    coolingFraction = 0.98 
+    steps_to_lower = 10000
     iters = 0
+    boltzmann = np.inf
     old_S = list(range(len(city_coords)))
     distances = create_distance_matrix(city_coords)
     best_S = old_S
@@ -175,9 +176,9 @@ def local_search(cutoff, city_coords, seed):
     start = time.time()
     while(float((time.time()-start)) < cutoff):
         index1, index2 = random.sample(range(len(old_S)), 2)
-        new_S = old_S
-        new_S[index1], new_S[index2] = old_S[index2], old_S[index1]
-        
+        new_S = old_S.copy()
+        new_S[index1] = old_S[index2]
+        new_S[index2] = old_S[index1]
         cost_new_S = cost(distances, new_S)
         cost_old_S = cost(distances, old_S)
 
@@ -187,6 +188,7 @@ def local_search(cutoff, city_coords, seed):
             deltaE = cost_new_S - cost_old_S
             #generate random number
             random_float = random.random()
+            boltzmann = np.exp(-deltaE/kT)
             if random_float < np.exp(-deltaE/(kT)):
                 old_S = new_S
         if cost_old_S < best_cost:
@@ -194,6 +196,8 @@ def local_search(cutoff, city_coords, seed):
             best_S = old_S
         if iters%steps_to_lower == 1:
             kT = kT * coolingFraction
+        if boltzmann < 0.0001:
+            kT = 500000
         iters+=1
     return best_cost, best_S 
 
