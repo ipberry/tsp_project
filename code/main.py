@@ -154,6 +154,8 @@ def local_search(cutoff, city_coords, seed):
         cutoff time for algorithm to exit after
     city_coords: list 
         list of lists of city coordinates and city numbers
+    seed: int 
+        random seed
 
     Returns
     -------
@@ -172,6 +174,7 @@ def local_search(cutoff, city_coords, seed):
     distances = create_distance_matrix(city_coords)
     best_S = old_S
     best_cost = cost(distances, best_S)
+    random.seed(seed)
 
     while(float((time.time()-start)) < cutoff):
         index1, index2 = random.sample(range(len(old_S)), 2)
@@ -297,6 +300,31 @@ def main():
     else:
         quality, tour_ordered_list = approximate_mst(args.time, city_coords)
     write_output(args.inst, args.alg, args.time, quality, tour_ordered_list, args.seed)
+
+def test_LS():
+    """
+    simple logic to automate the testing. this is just for me and felicities sake, we will manipulate the df further to make it up to quality of the deliverable, but i figured i would push it so that y'all could do something similar if you want. but do be aware I have not tested this yet
+    """
+    cities = ['Atlanta', 'Berlin', 'Boston', 'Champaign', 'Cincinnati', 'Denver', 'NYC', 'Philadelphia', 'Roanoke', 'SanFransisco', 'Toronto', 'UKansasState', 'UMissouri']
+    
+    times = [5,15,30,60,180,300,1800]
+    
+    df = pd.DataFrame(index=cities, columns=times)
+
+    for city in cities:
+        city_coords = read_inputfile(f'{city}.tsp')
+        for time in times:
+            time_sum = 0
+            for i in range(0,10):
+                seed = random.randint(0,1000)
+                qualtiy, tour_ordered_list = local_search(time, city_coords, seed)
+                time_sum += float(quality)
+                write_output(city, 'LS', time, quality, tour_ordered_list, seed)
+            time_ave = time_sum/10
+            df.loc[city, time] = time_ave
+    df['full tour'] = 'yes'
+    df.to_csv('ls_results.csv')
+
 
 if __name__ == "__main__":
     main()
