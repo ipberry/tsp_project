@@ -2,7 +2,10 @@
 CSE 6140 Fall 2024
 TSP Project: Felicity Nielson, Isabel Berry, Austin Chemelli, Prasad Shetye
 
-Solves the Traveling Salesman Problem using three different algorithm options: Exact (Brute-Force), Approximate (Deterministic 2-Approximation Algorithm), or Local Search (a stochastic algorithm)
+Solves the Traveling Salesman Problem using three different algorithm options:
+Exact (Brute-Force), 
+Approximate (Deterministic 2-Approximation Algorithm), 
+or Local Search (a stochastic algorithm)
 """
 import math
 import time
@@ -14,9 +17,9 @@ import itertools
 
 def get_arguments():
     """
-    this function will create and parse the command line arguments 
+    Parses command line arguments 
     Instance, algorithm, and time are required, but seed is optional and defaulted to None since it is only used in LS
-    Options for algorithm can be brutre force, local search, or approximate
+    Options for algorithm are brute force, approximate, or local search
 
     Parameters
     ----------
@@ -37,7 +40,7 @@ def get_arguments():
 
 def read_inputfile(filename):
     """
-    this function will read the input file and create a list of the nodes and coordinates in the input file
+    Reads the input file and creates a list of the nodes and coordinates in the input file
 
     Parameters
     ----------
@@ -65,7 +68,7 @@ def read_inputfile(filename):
 
 def write_output(instance, method, cutoff, quality, tour_ordered_list, seed = None):
     """
-    writes the output file for a given set of parameters with a tour and cost already computed
+    Writes the output file for a given set of parameters with a tour and cost already computed
 
     Parameters
     ----------
@@ -280,7 +283,10 @@ def cost(distance_matrix, tour_ordered_list):
 
 def main():
     """
-    Solves the Traveling Salesman Problem using three different algorithm options: Exact (Brute-Force), Approximate (Deterministic 2-Approximation Algorithm), or Local Search (a stochastic algorithm)
+    Solves the Traveling Salesman Problem using three different algorithm options: 
+    Exact (Brute-Force), 
+    Approximate (Deterministic 2-Approximation Algorithm), 
+    or Local Search (a stochastic algorithm)
     
     Parameters
     ----------
@@ -296,10 +302,13 @@ def main():
     if args.alg == 'BF':
         quality, tour_ordered_list = brute_force(args.time, city_coords)
     elif args.alg == 'LS':
+        print("in")
         quality, tour_ordered_list = local_search(args.time, city_coords, args.seed)
     else:
         quality, tour_ordered_list = approximate_mst(args.time, city_coords)
+    print("writing...")
     write_output(args.inst, args.alg, args.time, quality, tour_ordered_list, args.seed)
+    print("written.")
 
 def test_LS():
     """
@@ -307,7 +316,7 @@ def test_LS():
     """
     cities = ['Atlanta', 'Berlin', 'Boston', 'Champaign', 'Cincinnati', 'Denver', 'NYC', 'Philadelphia', 'Roanoke', 'SanFransisco', 'Toronto', 'UKansasState', 'UMissouri']
     
-    times = [5,15,30,60,180,300,1800]
+    times = [5,15,30,60,120,180,300]
     
     df = pd.DataFrame(index=cities, columns=times)
 
