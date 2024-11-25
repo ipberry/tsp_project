@@ -87,6 +87,7 @@ def write_output(instance, method, cutoff, quality, tour_ordered_list, seed = No
     -------
     None
     """
+
     file_name = f'{instance}_{method}_{cutoff}'
     if seed is not None:
         file_name = file_name + f'_{seed}'
@@ -302,13 +303,11 @@ def main():
     if args.alg == 'BF':
         quality, tour_ordered_list = brute_force(args.time, city_coords)
     elif args.alg == 'LS':
-        print("in")
         quality, tour_ordered_list = local_search(args.time, city_coords, args.seed)
     else:
         quality, tour_ordered_list = approximate_mst(args.time, city_coords)
-    print("writing...")
+
     write_output(args.inst, args.alg, args.time, quality, tour_ordered_list, args.seed)
-    print("written.")
 
 def test_LS():
     """
