@@ -21,6 +21,9 @@ def get_arguments():
     Instance, algorithm, and time are required, but seed is optional and defaulted to None since it is only used in LS
     Options for algorithm are brute force, approximate, or local search
 
+    example command:
+        python main.py -inst Cincinnati -alg LS -time 20
+
     Parameters
     ----------
     None
@@ -33,7 +36,7 @@ def get_arguments():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-inst", type = str, required=True, help = 'filename of the dataset')
-    parser.add_argument("-alg", type = str, choices = ['BF', 'LS', 'Approx'], required =True, help = 'search method (BF, Approx, LS)')
+    parser.add_argument("-alg", type = str, choices = ['BF', 'LS', 'Approx'], required=True, help='search method (BF, Approx, LS)')
     parser.add_argument("-time", type = int, required = True, help = 'cutoff time in seconds')
     parser.add_argument("-seed", default = None, type = int, help = 'random seed for LS alg')
     return parser.parse_args()
@@ -87,6 +90,7 @@ def write_output(instance, method, cutoff, quality, tour_ordered_list, seed = No
     -------
     None
     """
+
     file_name = f'{instance}_{method}_{cutoff}'
     if seed is not None:
         file_name = file_name + f'_{seed}'
@@ -147,7 +151,7 @@ def brute_force(cutoff, city_coords):
 def approximate_mst(cutoff, city_coords):
     return 
 
-def local_search(cutoff, city_coords, seed):
+def local_search(cutoff, city_coords, seed, kT=500000, coolingFraction=0.98, steps_to_lower=10000):
     """
     Solves the Traveling Salesman Problem for a given list of city coordinates through a simulated annealing algorithm 
     
@@ -159,6 +163,12 @@ def local_search(cutoff, city_coords, seed):
         list of lists of city coordinates and city numbers
     seed: int 
         random seed
+    kT: int
+        boltzmann's costant * temperature
+    coolingFraction: float
+        the percentage of kT the system cools at each step. Used to modify kT at each step
+    steps_to_lower: int
+        number of steps that will be taken to lower kT to 0 
 
     Returns
     -------
@@ -168,9 +178,6 @@ def local_search(cutoff, city_coords, seed):
         list of the order to visit the nodes for the found solution to TSP
     """
     start = time.time()
-    kT = 500000
-    coolingFraction = 0.98 
-    steps_to_lower = 10000
     iters = 0
     boltzmann = np.inf
     old_S = list(range(len(city_coords)))
@@ -201,8 +208,8 @@ def local_search(cutoff, city_coords, seed):
             best_S = old_S
         if iters%steps_to_lower == 1:
             kT = kT * coolingFraction
-        if boltzmann < 0.0001:
-            kT = 500000
+        if boltzmann < 0.0001: # this number was estimated through trial and error as a good cutoff
+            kT = kT
         iters+=1
     return best_cost, best_S 
 
@@ -302,38 +309,73 @@ def main():
     if args.alg == 'BF':
         quality, tour_ordered_list = brute_force(args.time, city_coords)
     elif args.alg == 'LS':
-        print("in")
         quality, tour_ordered_list = local_search(args.time, city_coords, args.seed)
     else:
         quality, tour_ordered_list = approximate_mst(args.time, city_coords)
-    print("writing...")
+
     write_output(args.inst, args.alg, args.time, quality, tour_ordered_list, args.seed)
-    print("written.")
 
 def test_LS():
     """
     simple logic to automate the testing. this is just for me and felicities sake, we will manipulate the df further to make it up to quality of the deliverable, but i figured i would push it so that y'all could do something similar if you want. but do be aware I have not tested this yet
     """
-    cities = ['Atlanta', 'Berlin', 'Boston', 'Champaign', 'Cincinnati', 'Denver', 'NYC', 'Philadelphia', 'Roanoke', 'SanFransisco', 'Toronto', 'UKansasState', 'UMissouri']
-    
+    cities = ['Atlanta', 'Berlin', 'Boston', 'Champaign', 'Cincinnati', 'Denver', 'NYC', 
+              'Philadelphia', 'Roanoke', 'SanFransisco', 'Toronto', 'UKansasState', 'UMissouri']
     times = [5,15,30,60,120,180,300]
+    num_iter = 10    
+
     
     df = pd.DataFrame(index=cities, columns=times)
 
     for city in cities:
         city_coords = read_inputfile(f'{city}.tsp')
         for time in times:
-            time_sum = 0
-            for i in range(0,10):
+            quality_sum = 0
+            for i in range(0,num_iter):
                 seed = random.randint(0,1000)
-                qualtiy, tour_ordered_list = local_search(time, city_coords, seed)
-                time_sum += float(quality)
+                quality, tour_ordered_list = local_search(time, city_coords, seed)
+                quality_sum += float(quality)
                 write_output(city, 'LS', time, quality, tour_ordered_list, seed)
-            time_ave = time_sum/10
-            df.loc[city, time] = time_ave
+            quality_ave = quality_sum/num_iter
+            df.loc[city, time] = quality_ave
     df['full tour'] = 'yes'
     df.to_csv('ls_results.csv')
 
 
+def hp_tune_LS():
+    """
+    Applies grid search to hyper parameters for LS. 
+    """
+    # cities = ['Atlanta', 'Berlin', 'Boston', 'Champaign', 'Cincinnati', 'Denver', 'NYC', 
+    #           'Philadelphia', 'Roanoke', 'SanFransisco', 'Toronto', 'UKansasState', 'UMissouri']
+    cities = ['Toronto']
+    times = [30]
+    num_iter = 1
+
+    grid = [[400000, 500000, 600000],[0.9, 0.95, 0.98],[8000, 10000, 12000]] # columns: kT, coolingFraction, steps_to_lower (starting: 500000, 0.98, 10000)
+    
+    df = pd.DataFrame(index=cities, columns=times)
+
+    for kT in grid[0]:
+        for coolingFraction in grid[1]:
+            for steps_to_lower in grid[2]:
+                for city in cities:
+                    city_coords = read_inputfile(f'{city}.tsp')
+                    for time in times:
+                        quality_sum = 0
+                        for i in range(0,num_iter):
+                            #seed = random.randint(0,1000)
+                            seed = 0
+                            quality, tour_ordered_list = local_search(time, city_coords, seed, kT, coolingFraction, steps_to_lower)
+                            quality_sum += float(quality)
+                            end_tag = f'{seed}_kT{kT}_CF{coolingFraction}_StL{steps_to_lower}'
+                            write_output(city, 'LS', time, quality, tour_ordered_list, end_tag)
+                        quality_ave = quality_sum/num_iter
+                        df.loc[city, time] = quality_ave
+                df['full tour'] = 'yes'
+                df.to_csv('ls_results.csv')
+
+
 if __name__ == "__main__":
-    main()
+    hp_tune_LS()
+    #main()
