@@ -185,6 +185,7 @@ def local_search(cutoff, city_coords, seed, kT=500000, coolingFraction=0.98, ste
     best_S = old_S
     best_cost = cost(distances, best_S)
     random.seed(seed)
+    kT_mod = kT
 
     while(float((time.time()-start)) < cutoff):
         index1, index2 = random.sample(range(len(old_S)), 2)
@@ -200,16 +201,16 @@ def local_search(cutoff, city_coords, seed, kT=500000, coolingFraction=0.98, ste
             deltaE = cost_new_S - cost_old_S
             #generate random number
             random_float = random.random()
-            boltzmann = np.exp(-deltaE/kT)
-            if random_float < np.exp(-deltaE/(kT)):
+            boltzmann = np.exp(-deltaE/kT_mod)
+            if random_float < np.exp(-deltaE/(kT_mod)):
                 old_S = new_S
         if cost_old_S < best_cost:
             best_cost = cost_old_S
             best_S = old_S
         if iters%steps_to_lower == 1:
-            kT = kT * coolingFraction
+            kT_mod = kT_mod * coolingFraction
         if boltzmann < 0.0001: # this number was estimated through trial and error as a good cutoff
-            kT = kT
+            kT_mod = kT
         iters+=1
     return best_cost, best_S 
 
