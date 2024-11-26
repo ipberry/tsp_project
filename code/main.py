@@ -377,5 +377,4 @@ def hp_tune_LS():
 
 
 if __name__ == "__main__":
-    hp_tune_LS()
-    #main()
+    main()
