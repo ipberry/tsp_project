@@ -145,7 +145,72 @@ def brute_force(cutoff, city_coords):
     return tuple(ret)
 
 def approximate_mst(cutoff, city_coords):
-    return 
+    # MST-Prim(G, c, r)
+    def mst_prim(distance_matrix, num_vertices, r):
+        # initialize data structures
+        visited = [False] * num_vertices
+        pq = [i for i in range(num_vertices)]
+        key = [math.inf] * num_vertices
+        key[r] = 0
+        parent = [-1] * num_vertices
+
+        # pop one vertex off at a time from pq until all vertices are considered
+        while pq:
+            # extract the vertex u with the minimum key value and remove from pq
+            u = min(pq, key=lambda x: key[x])
+            pq.remove(u)
+            visited[u] = True
+
+            # consider each vertex v adjacent to u
+            for v in range(num_vertices):
+                if not visited[v]:
+                    # if this edge is shorter than the current shortest edge to v
+                    if distance_matrix[u][v] < key[v]:
+                        # attach to the MST via parent
+                        parent[v] = u
+                        # update the key value of v
+                        key[v] = distance_matrix[u][v]
+
+        # create an adjecency list representation for the MST
+        mst = [[] for _ in range(num_vertices)]
+        for v in range(1, num_vertices):
+            u = parent[v]
+            mst[v].append(u)
+            mst[u].append(v)
+
+        print("mst: ", mst)
+        return mst
+    
+    # preorder traversal
+    def preorder(curr, visited, walk):
+        walk.append(curr + 1)
+        visited[curr] = True
+        for adj in mst[curr]:
+            if not visited[adj]:
+                preorder(adj, visited, walk)
+
+    # get the distance matrix using the city_coords
+    distance_matrix = create_distance_matrix(city_coords)
+    num_vertices = len(city_coords)
+
+    # choose a vertex r as the root of the MST
+    r = 0
+
+    # get the MST using Prim's algorithm
+    mst = mst_prim(distance_matrix, num_vertices, r)
+
+    # preorder walk of MST and make a list h of vertices according to first visited
+    visited = [False] * num_vertices
+    h = []
+    preorder(0, visited, h)
+
+    # get the quality of the tour
+    quality = cost(distance_matrix, h)
+    print("quality: ", quality)
+    print("tour: ", h)
+
+    return quality, h
+
 
 def local_search(cutoff, city_coords, seed):
     """
@@ -326,7 +391,7 @@ def test_LS():
             time_sum = 0
             for i in range(0,10):
                 seed = random.randint(0,1000)
-                qualtiy, tour_ordered_list = local_search(time, city_coords, seed)
+                quality, tour_ordered_list = local_search(time, city_coords, seed)
                 time_sum += float(quality)
                 write_output(city, 'LS', time, quality, tour_ordered_list, seed)
             time_ave = time_sum/10
