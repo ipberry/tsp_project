@@ -167,6 +167,7 @@ def main():
     else:
         quality, tour_ordered_list = approximate_mst(args.time, city_coords)
     write_output(args.inst, args.alg, args.time, quality, tour_ordered_list, args.seed)
+    print(args.inst, args.time, quality)
 
 if __name__ == "__main__":
     main()
