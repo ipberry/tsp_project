@@ -323,14 +323,14 @@ def test_LS():
     """
     cities = ['Atlanta', 'Berlin', 'Boston', 'Champaign', 'Cincinnati', 'Denver', 'NYC', 
               'Philadelphia', 'Roanoke', 'SanFransisco', 'Toronto', 'UKansasState', 'UMissouri']
-    times = [5,15,30,60,120,180,300]
+    times = [15,30,60,300]
     num_iter = 10    
 
     
     df = pd.DataFrame(index=cities, columns=times)
 
     for city in cities:
-        city_coords = read_inputfile(f'{city}.tsp')
+        city_coords = read_inputfile(f'../data/{city}.tsp')
         for time in times:
             quality_sum = 0
             for i in range(0,num_iter):
@@ -340,6 +340,7 @@ def test_LS():
                 write_output(city, 'LS', time, quality, tour_ordered_list, seed)
             quality_ave = quality_sum/num_iter
             df.loc[city, time] = quality_ave
+            df.to_csv('ls_results.csv')
     df['full tour'] = 'yes'
     df.to_csv('ls_results.csv')
 
