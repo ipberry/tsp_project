@@ -457,9 +457,10 @@ def test_Approx():
     df = pd.DataFrame(index=cities, columns=['time', 'quality', 'runtime', 'full tour'])
 
     for city in cities:
-        city_coords = read_inputfile(f'..\data\{city}.tsp')
+        city_coords = read_inputfile(f'..\\data\\{city}.tsp')
         for time in times:
             quality, runtime, tour_ordered_list = approximate_mst(time, city_coords)
+            write_output(city, 'Approx', time, quality, tour_ordered_list)
             df.loc[city, 'time'] = runtime
             df.loc[city, 'quality'] = quality
             df.loc[city, 'runtime'] = runtime
@@ -467,6 +468,7 @@ def test_Approx():
                 df.loc[city, 'full tour'] = 'yes'
             else:
                 df.loc[city, 'full tour'] = 'no'
+            
     df.to_csv('approx_results.csv')
 
 
