@@ -149,7 +149,77 @@ def brute_force(cutoff, city_coords):
     return tuple(ret)
 
 def approximate_mst(cutoff, city_coords):
-    return 
+    ########################### Define the helper methods ##################################
+    # MST-Prim
+    def mst_prim(distance_matrix, num_vertices, r):
+        # initialize data structures
+        visited = [False] * num_vertices
+        pq = [i for i in range(num_vertices)]
+        key = [math.inf] * num_vertices
+        key[r] = 0
+        parent = [-1] * num_vertices
+
+        # pop one vertex off at a time from pq until all vertices are considered
+        while pq:
+            # extract the vertex u with the minimum key value and remove from pq
+            u = min(pq, key=lambda x: key[x])
+            pq.remove(u)
+            visited[u] = True
+
+            # consider each vertex v adjacent to u
+            for v in range(num_vertices):
+                if not visited[v]:
+                    # if this edge is shorter than the current shortest edge to v
+                    if distance_matrix[u][v] < key[v]:
+                        # attach to the MST via parent
+                        parent[v] = u
+                        # update the key value of v
+                        key[v] = distance_matrix[u][v]
+
+        # create an adjecency list representation for the MST
+        mst = [[] for _ in range(num_vertices)]
+        for v in range(1, num_vertices):
+            u = parent[v]
+            mst[v].append(u)
+            mst[u].append(v)
+
+        return mst
+    
+    # preorder walk
+    def preorder(curr, visited, walk):
+        walk.append(curr + 1)
+        visited[curr] = True
+        for adj in mst[curr]:
+            if not visited[adj]:
+                preorder(adj, visited, walk)
+
+    ########################### Generate the tour ##################################
+
+    start_time = time.time()
+
+    # get the distance matrix using the city_coords
+    distance_matrix = create_distance_matrix(city_coords)
+    num_vertices = len(city_coords)
+
+    # choose a vertex r as the root of the MST
+    r = 0
+
+    # get the MST using Prim's algorithm
+    mst = mst_prim(distance_matrix, num_vertices, r)
+
+    # preorder walk of MST and make a list h of vertices according to first visited
+    visited = [False] * num_vertices
+    h = []
+    preorder(0, visited, h)
+    h.append(1)
+
+    end_time = time.time()
+
+    # get the quality and runtime of the tour
+    quality = cost(distance_matrix, h)
+    runtime = end_time - start_time
+
+    return quality, runtime, h
 
 def local_search(cutoff, city_coords, seed, kT=500000, coolingFraction=0.98, steps_to_lower=10000):
     """
@@ -312,7 +382,7 @@ def main():
     elif args.alg == 'LS':
         quality, tour_ordered_list = local_search(args.time, city_coords, args.seed)
     else:
-        quality, tour_ordered_list = approximate_mst(args.time, city_coords)
+        quality, runtime, tour_ordered_list = approximate_mst(args.time, city_coords)
 
     write_output(args.inst, args.alg, args.time, quality, tour_ordered_list, args.seed)
     print(args.inst, args.time, quality)
@@ -377,6 +447,27 @@ def hp_tune_LS():
                         df.loc[city, time] = quality_ave
                 df['full tour'] = 'yes'
                 df.to_csv('ls_results.csv')
+
+def test_Approx():
+    cities = ['Atlanta', 'Berlin', 'Boston', 'Champaign', 'Cincinnati', 'Denver', 'NYC', 
+              'Philadelphia', 'Roanoke', 'SanFrancisco', 'Toronto', 'UKansasState', 'UMissouri']
+    times = [5,15,30,60,120,180,300]
+    
+    # create a df where rows are the cities and the column are runtime and quality
+    df = pd.DataFrame(index=cities, columns=['time', 'quality', 'runtime', 'full tour'])
+
+    for city in cities:
+        city_coords = read_inputfile(f'..\data\{city}.tsp')
+        for time in times:
+            quality, runtime, tour_ordered_list = approximate_mst(time, city_coords)
+            df.loc[city, 'time'] = runtime
+            df.loc[city, 'quality'] = quality
+            df.loc[city, 'runtime'] = runtime
+            if runtime < time:
+                df.loc[city, 'full tour'] = 'yes'
+            else:
+                df.loc[city, 'full tour'] = 'no'
+    df.to_csv('approx_results.csv')
 
 
 if __name__ == "__main__":
