@@ -106,29 +106,10 @@ def write_output(instance, method, cutoff, quality, tour_ordered_list, seed = No
 
 
 def brute_force(cutoff, city_coords):
-    """
-    Solve the TSP using brute force with a time cutoff.
-
-    Parameters
-    ----------
-    cutoff: int
-        Time cutoff in seconds.
-    city_coords: list
-        List of city coordinates.
-
-    Returns
-    -------
-    tuple
-        (best_distance, best_tour) where best_distance is the shortest distance found,
-        and best_tour is the corresponding tour as an ordered list of city indices.
-    """
     #Base time for cutoff condition
     base = time.time()
-
     #Stores the return values [shortest distance found thus far, the order of the shortest tour thus far]
     ret = [math.inf, None]
-
-
     #Helper to explore all permutations
     def helper(current, remaining):
         if time.time() < cutoff + base:
@@ -154,7 +135,6 @@ def brute_force(cutoff, city_coords):
         else:
             #Cutoff time exceeded
             return
-
     helper([], city_coords)
 
     return tuple(ret)
