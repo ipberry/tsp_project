@@ -464,7 +464,7 @@ def test_Approx():
 def test_BF():
     cities = ['Atlanta', 'Berlin', 'Boston', 'Champaign', 'Cincinnati', 'Denver', 'NYC', 
               'Philadelphia', 'Roanoke', 'SanFrancisco', 'Toronto', 'UKansasState', 'UMissouri']
-    cut_offs = [5, 15, 30, 60, 120, 180, 300]
+    cut_offs = [15, 30, 60, 300]
     
     df = pd.DataFrame(index=cities, columns=['time', 'quality', 'runtime', 'full tour'])
 
