@@ -470,6 +470,28 @@ def test_Approx():
             
     df.to_csv('approx_results.csv')
 
+def test_BF():
+    cities = ['Atlanta', 'Berlin', 'Boston', 'Champaign', 'Cincinnati', 'Denver', 'NYC', 
+              'Philadelphia', 'Roanoke', 'SanFrancisco', 'Toronto', 'UKansasState', 'UMissouri']
+    cut_offs = [5, 15, 30, 60, 120, 180, 300]
+    
+    df = pd.DataFrame(index=cities, columns=['time', 'quality', 'runtime', 'full tour'])
+
+    for city in cities:
+        city_coords = read_inputfile(f'../data/{city}.tsp')
+        for cut_off in cut_offs:
+            start_time = time.time()
+            quality, tour_ordered_list = brute_force(cut_off, city_coords)
+            end_time = time.time()
+            runtime = end_time - start_time
+            write_output(city, 'BF', cut_off, quality, tour_ordered_list)
+
+            df.loc[city, 'time'] = cut_off
+            df.loc[city, 'quality'] = quality
+            df.loc[city, 'runtime'] = runtime
+            df.loc[city, 'full tour'] = 'yes' if runtime < cut_off else 'no'    
+    df.to_csv('bf_results.csv')
+
 
 if __name__ == "__main__":
-    main()
+    test_BF()
