@@ -211,7 +211,6 @@ def approximate_mst(cutoff, city_coords):
     visited = [False] * num_vertices
     h = []
     preorder(0, visited, h)
-    h.append(1)
 
     end_time = time.time()
 
