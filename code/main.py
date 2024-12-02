@@ -386,7 +386,7 @@ def main():
     """
 
     args = get_arguments()
-    city_coords = read_inputfile(f'{args.inst}.tsp')
+    city_coords = read_inputfile(f'../data/{args.inst}.tsp')
     if args.alg == 'BF':
         quality, tour_ordered_list = brute_force(args.time, city_coords)
     elif args.alg == 'LS':
