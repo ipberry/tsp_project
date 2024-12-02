@@ -122,26 +122,37 @@ def brute_force(cutoff, city_coords):
         (best_distance, best_tour) where best_distance is the shortest distance found,
         and best_tour is the corresponding tour as an ordered list of city indices.
     """
+    #Base time for cutoff condition
     base = time.time()
+
+    #Stores the return values [shortest distance found thus far, the order of the shortest tour thus far]
     ret = [math.inf, None]
 
+
+    #Helper to explore all permutations
     def helper(current, remaining):
         if time.time() < cutoff + base:
+            #If all cities explored calculate tour distance
             if not remaining:
                 distance = 0
                 for i in range(len(current)):
                     curr1, curr2 = current[i], current[(i+1) % len(current)]
                     distance += math.sqrt((float(curr1[1]) - float(curr2[1])) **2 + (float(curr1[2]) - float(curr2[2]))**2)
+                # If the current tour is less than the shortest tour we are storing, update the shortest tour we store
                 if distance < ret[0]:
                     ret[0] = distance
                     ret[1] = [city[0] for city in current]
                 return
             else:
+                #Explore the unexplored cities
                 for ind, city in enumerate(remaining):
                     current.append(city)
+                    # Recursively call helper with the updated path and remaining cities
                     helper(current, remaining[:ind] + remaining[ind+1:])
+                    #Backtrack be removing the last city we added 2 lines above
                     current.pop()
         else:
+            #Cutoff time exceeded
             return
 
     helper([], city_coords)
