@@ -466,7 +466,7 @@ def test_BF():
               'Philadelphia', 'Roanoke', 'SanFrancisco', 'Toronto', 'UKansasState', 'UMissouri']
     cut_offs = [15, 30, 60, 300]
     
-    df = pd.DataFrame(index=cities, columns=['time', 'quality', 'runtime', 'full tour'])
+    df = pd.DataFrame(index=cities, columns=['time', 'quality', 'runtime', 'full tour', 'all tours considered'])
 
     for city in cities:
         city_coords = read_inputfile(f'../data/{city}.tsp')
@@ -480,9 +480,8 @@ def test_BF():
             df.loc[city, 'time'] = cut_off
             df.loc[city, 'quality'] = quality
             df.loc[city, 'runtime'] = runtime
-            df.loc[city, 'full tour'] = 'yes' if runtime < cut_off else 'no'    
+            df.loc[city, 'full tour'] =  'no' if quality == math.inf else 'yes'
+            df.loc[city, 'all tours considered'] = 'yes' if runtime < cut_off else 'no' 
     df.to_csv('bf_results.csv')
-
-
 if __name__ == "__main__":
     main()
